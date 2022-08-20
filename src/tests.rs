@@ -1,9 +1,8 @@
 
 #[cfg(test)]
 pub mod tests {
-    use crate::{Trait, proposal};
-
-    use super::*;
+    use crate::quadratic_voting::Trait;
+    use crate::proposal;
 
     #[derive(PartialEq, Debug)]
     pub struct Test;

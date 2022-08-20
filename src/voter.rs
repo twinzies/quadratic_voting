@@ -1,7 +1,6 @@
-use crate::Trait;
+use crate::quadratic_voting::Trait;
 
-        #[derive(Debug, PartialEq)]
-
+#[derive(Debug, PartialEq)]
 pub enum VoteTypes {
     Yay,
     Nay,
