@@ -11,12 +11,27 @@ pub struct Voter<T: Trait> {
     stance: VoteTypes
 }
 
-impl <T: Trait> Voter <T>{
+impl <T: Trait> Voter <T> {
+
     pub fn new(who: T::AccountId, weight:T::Weight, stance: VoteTypes) -> Self {
         Voter {
             weight: weight,
             stance: stance,
             who: who,
+        }
+    }
+
+    pub fn weight(self, weight: T::Weight) -> Self {
+        Voter { 
+            weight: weight,
+            ..self
+        }
+    }
+
+    pub fn stance(self, stance: VoteTypes) -> Self {
+        Voter { 
+            stance: stance,
+            ..self
         }
     }
 }
