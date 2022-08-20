@@ -1,23 +1,26 @@
+use std::ops::Add;
+
 use crate::Trait;
 use rand::Rng;
 
+#[derive(Debug, PartialEq)]
 pub struct Proposal <T: Trait> {
-    pub numAyes: T::VoteCount,
-    pub numNays: T::VoteCount,
+    pub numAyes: u64,
+    pub numNays: u64,
     pub creator: T::AccountId,
     pub description: T::ProposalDescription,
     pub creationTime: T::Time,
 }
 
-pub fn generatePid(proposal: Proposal) -> T::ProposalId {
+pub fn generatePid <T: Trait> () -> u64 {
     let mut rng = rand::thread_rng();
-    let iD: u64  = rng.gen_range(15520.0..93932.56);
-    return iD
+    let iD: u64 = rng.gen_range(15520..93932);
+    return iD;
 } // Simple ID generation.
 
 impl <T: Trait> Proposal <T> {
 
-    pub fn new(numAyes: T::VoteCount, numNays: T::VoteCount, creator: T::AccountId, description: T::ProposalDescription, creationTime: T::Time) -> Self {
+    pub fn new(numAyes: u64, numNays: u64, creator: T::AccountId, description: T::ProposalDescription, creationTime: T::Time) -> Self {
         Proposal {
             numAyes: numAyes,
             numNays: numNays,
@@ -27,14 +30,14 @@ impl <T: Trait> Proposal <T> {
         }
     }
 
-    pub fn numAyes(self, new_votes: T::VoteCount) -> Self {
+    pub fn modAyes(self, new_votes: u64) -> Self {
         Proposal {
             numAyes: self.numAyes + new_votes,
             ..self
         }
     }
 
-    pub fn numNays(self, new_votes: T::VoteCount) -> Self {
+    pub fn modNays(self, new_votes: u64) -> Self {
         Proposal {
             numAyes: self.numNays + new_votes,
             ..self

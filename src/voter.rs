@@ -1,14 +1,17 @@
 use crate::Trait;
 
+        #[derive(Debug, PartialEq)]
+
 pub enum VoteTypes {
     Yay,
     Nay,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Voter<T: Trait> {
     weight: T::Weight,
     who: T::AccountId, 
-    stance: VoteTypes
+    stance: VoteTypes,
 }
 
 impl <T: Trait> Voter <T> {
