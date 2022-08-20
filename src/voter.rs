@@ -1,11 +1,8 @@
+use crate::Trait;
+
 pub enum VoteTypes {
     Yay,
     Nay,
-}
-
-pub trait Trait {
-    type Weight: Eq;
-    type AccountId: Eq;
 }
 
 pub struct Voter<T: Trait> {
@@ -14,12 +11,12 @@ pub struct Voter<T: Trait> {
     stance: VoteTypes
 }
 
-impl Voter {
+impl <T: Trait> Voter <T>{
     pub fn new(who: T::AccountId, weight:T::Weight, stance: VoteTypes) -> Self {
         Voter {
             weight: weight,
-            address: address,
             stance: stance,
+            who: who,
         }
     }
 }
