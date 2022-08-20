@@ -42,6 +42,11 @@ pub mod tests {
         myproposal = myproposal.mod_ayes(2);
         assert_ne!(myproposal, testproposal);
 
-        }
+    }
+    
+    #[test]
+    fn test_voter() {
+
+    }
 
 }
