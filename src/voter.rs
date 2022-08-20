@@ -1,6 +1,6 @@
 use crate::quadratic_voting::Trait;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum VoteTypes {
     Yay,
     Nay,
@@ -22,18 +22,26 @@ impl <T: Trait> Voter <T> {
             who: who,
         }
     }
-
-    pub fn weight(self, weight: T::Weight) -> Self {
+    // nice to have
+    pub fn update_weight(self, weight: T::Weight) -> Self {
         Voter { 
             weight: weight,
             ..self
         }
     }
-
-    pub fn stance(self, stance: VoteTypes) -> Self {
+    // nice to have
+    pub fn update_stance(self, stance: VoteTypes) -> Self {
         Voter { 
             stance: stance,
             ..self
         }
+    }
+
+    pub fn stance(&self) -> VoteTypes {
+        self.stance
+    }
+
+    pub fn weight(&self) -> T::Weight{
+        self.weight
     }
 }

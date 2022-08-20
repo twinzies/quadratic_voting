@@ -10,7 +10,7 @@ pub mod quadratic_voting {
 
     use super::*;
     pub trait Trait {
-        type Weight: Eq;
+        type Weight: Eq + Copy + Clone;
         type AccountId: Eq;
         type VoteCount: Eq + AddAssign + SubAssign + Add + Sub + Copy + Clone; // todo! Revisit implementation upon introducing balances and currencies.
         type ProposalDescription: Display;
@@ -28,6 +28,7 @@ pub mod quadratic_voting {
     // todo: Why / how do the generics work here ?
     pub type Proposals <T> = HashMap<ProposalId, proposal::Proposal<T>>;
     pub type VoterInfo <T> = HashMap<ProposalId, Vec<voter::Voter<T>>>;
+    pub type QVInternalFunds = u64; // To keep track of funds
 
     pub fn create_proposal() -> Result<(), Errors> {
         Ok(())
@@ -61,7 +62,5 @@ pub mod quadratic_voting {
     fn votes_from_tokens() -> u64 {
         0
     }
-
-
 
 }

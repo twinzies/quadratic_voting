@@ -2,7 +2,8 @@
 #[cfg(test)]
 pub mod tests {
     use crate::quadratic_voting::Trait;
-    use crate::proposal;
+    use crate::{proposal, voter};
+    use crate::voter::{VoteTypes, Voter};
 
     #[derive(PartialEq, Debug)]
     pub struct Test;
@@ -47,6 +48,21 @@ pub mod tests {
     #[test]
     fn test_voter() {
 
+        let account1: u64 = 41;
+        let numVotes:u64 = 5;
+        let weight = numVotes * numVotes;
+        let stance = VoteTypes::Nay;
+
+        // Note that the generic is required to take an explicit form here at the time of the binding.
+
+        let voter1: Voter<Test> = voter::Voter::new(
+            account1,
+            weight,
+            stance);
+        
+        assert_eq!(voter1.stance(), VoteTypes::Nay);
+
+        assert_ne!(voter1.weight(), 5);
     }
 
 }
