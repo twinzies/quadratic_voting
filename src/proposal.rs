@@ -1,5 +1,3 @@
-
-
 use crate::quadratic_voting::Trait;
 use rand::Rng;
 

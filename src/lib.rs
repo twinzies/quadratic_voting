@@ -3,7 +3,11 @@ pub mod proposal;
 pub mod voter;
 pub(crate) mod tests;
 
+pub type ProposalId = u64;
+
 pub mod quadratic_voting {
+    use std::collections::HashMap;
+
     use super::*;
     pub trait Trait {
         type Weight: Eq;
@@ -18,6 +22,12 @@ pub mod quadratic_voting {
         DispatchError,
         FundsError,
     }
+    // Data handling for the module. 
+    // todo: What does it mean to declare these types ?
+    // todo: How to reference generics here ?
+    // todo: Why / how do the generics work here ?
+    pub type Proposals <T> = HashMap<ProposalId, proposal::Proposal<T>>;
+    pub type VoterInfo <T> = HashMap<ProposalId, Vec<voter::Voter<T>>>;
 
     pub fn create_proposal() -> Result<(), Errors> {
         Ok(())
@@ -32,23 +42,23 @@ pub mod quadratic_voting {
     }
 
     // Module's private functions - ~non dispatchable
-    fn _count_ballots() -> u64 {
+    fn count_ballots() -> u64 {
         0
     }
 
-    fn _release_funds() -> Result<(), Errors> {
+    fn release_funds() -> Result<(), Errors> {
         Ok(())
     }
 
-    fn _reserve_funds() -> Result<(), Errors> {
+    fn reserve_funds() -> Result<(), Errors> {
         Ok(())
     }
 
-    fn _cleanup() -> Result<(), Errors> {
+    fn cleanup() -> Result<(), Errors> {
         Ok(())
     }
 
-    fn _votes_from_tokens() -> u64 {
+    fn votes_from_tokens() -> u64 {
         0
     }
 
