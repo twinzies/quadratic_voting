@@ -19,6 +19,7 @@ pub trait Trait {
 pub enum Errors {
     DispatchError,
     FundsError,
+    ProposalNotFound,
 }
 
 pub struct Runtime;
@@ -44,10 +45,8 @@ pub struct Storage {
 }
 
 pub mod quadratic_voting {
-    use std::time::SystemTime;
-
+    use std::{time::SystemTime, error::Error};
     use crate::{proposal::Proposal, voter::VoteTypes};
-
     use super::*;
 
     pub fn create_proposal(storage: &mut Storage, fee: u64, who: u64, proposal_desc:&str) -> Result<(), Errors> {
@@ -60,10 +59,10 @@ pub mod quadratic_voting {
             1234,
         );
 
-        let p_Id = proposal::generate_pid();
+        let p_id = proposal::generate_pid();
 
         // Add new proposal to storage
-        storage.all_proposals.insert(p_Id, proposal);
+        storage.all_proposals.insert(p_id, proposal);
 
         // take fee
         storage.funds += fee;
@@ -71,33 +70,45 @@ pub mod quadratic_voting {
         Ok(())
     }
 
-    pub fn call_proposal<T: Trait<ProposalId = u64>>(storage: &mut Storage, proposal: T::ProposalId) -> Result<(), Errors> {
-    
-        let proposal = storage.all_proposals.get(&proposal);
+    pub fn call_proposal<T: Trait<ProposalId = u64>>(storage: &mut Storage, proposal: T::ProposalId) -> Result<(), Errors> 
+    {
+        if storage.all_proposals.get(&proposal).is_some() {
+            let win = count_ballots(storage.all_proposals.get(&proposal).unwrap());
+            match win.0 {
+                VoteTypes::Nay => println!("The Nays have it!"),
+                VoteTypes::Yay => println!("The Yays have it!"),
+                VoteTypes::NoStance => println!("Tied. No consensus reached.")
+            }
+            release_funds(storage, win.1); // win[1] represents ballots received
+            proposal_cleanup(storage, proposal);
+        }
+        else {
+            return Err(Errors::ProposalNotFound);
+        }
         Ok(())
     }
 
-    pub fn cast_vote<T: Trait>(storage: &mut Storage) -> Result<(), Errors> {
+    pub fn cast_vote(storage: &mut Storage) -> Result<(), Errors> {
         Ok(())
     }
 
     // Module's private functions - ~non dispatchable
 
     // Returns winning stance
-    fn count_ballots<T: Trait<ProposalId = u64>>(proposal: Proposal<T>) -> VoteTypes {
+    fn count_ballots<T: Trait<ProposalId = u64>>(proposal: &Proposal<T>) -> (VoteTypes, u64) {
         match proposal.num_ayes > proposal.num_nays {
-            true => VoteTypes::Yay,
+            true => (VoteTypes::Yay,proposal.num_ayes + proposal.num_nays),
             false => if proposal.num_ayes == proposal.num_nays {
-                VoteTypes::NoStance
+                (VoteTypes::NoStance, proposal.num_ayes + proposal.num_nays)
             }
             else {
-                VoteTypes::Nay
+                ( VoteTypes::Nay, proposal.num_ayes + proposal.num_nays)
             }
         }
     }
 
-    fn release_funds(storage: &mut Storage, amount: u64) -> Result<(), Errors> {
-        storage.funds -= amount;
+    fn release_funds(storage: &mut Storage, proposal: u64) -> Result<(), Errors> {
+        // todo! Release cumulative of weights Storage.voter_info.get(proposal). for each element in the vec<Voters>
         Ok(())
     }
 
@@ -106,7 +117,8 @@ pub mod quadratic_voting {
         Ok(())
     }
 
-    fn proposal_cleanup() -> Result<(), Errors> {
+    fn proposal_cleanup(storage: &mut Storage, proposal: u64) -> Result<(), Errors> {
+        // Delete Proposal id key from storage
         Ok(())
     }
 
