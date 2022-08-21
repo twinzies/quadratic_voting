@@ -8,6 +8,7 @@ pub struct Proposal <T: Trait> {
     pub creator: T::AccountId,
     pub description: T::ProposalDescription,
     pub creation_time: T::Time,
+    pub voters: Vec<T::AccountId>,
 }
 
 pub fn generate_pid () -> u64 {
@@ -21,9 +22,10 @@ impl <T: Trait> Proposal <T> {
         Proposal {
             num_ayes: num_ayes,
             num_nays: num_nays,
-            creation_time: creation_time,
             creator: creator,
             description: description,
+            creation_time: creation_time,
+            voters: Vec::new(),
         }
     }
 

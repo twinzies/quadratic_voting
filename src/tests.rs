@@ -19,10 +19,13 @@ pub mod tests {
         type Currency = u64;
     }
 
+    mod T {
+    }
     #[test]
     fn test_proposal() {
         // unit tests for proposal
         let user1: u64 = 41;
+        let mut voters:Vec<<Test as Trait>::AccountId> = Vec::new();
 
         let testproposal = proposal::Proposal::<Test> {
             num_ayes: 0,
@@ -30,15 +33,16 @@ pub mod tests {
             creator: user1, 
             description: String::from("test proposal"),
             creation_time: 1661004817,
+            voters,
         };
 
         let mut myproposal = 
-        proposal::Proposal::new(
+        proposal::Proposal::new (
             0,
             0,
             user1, 
             String::from("test proposal"),
-            1661004817,);
+            1661004817);
 
         assert_eq!(testproposal, myproposal);
 
@@ -70,7 +74,7 @@ pub mod tests {
 
     #[test]
     fn test_quadratic_voting() {
-        // initialize a Storage instance with an empty hashmap.
+        // instantiate a Storage instance with an empty hashmap.
         let mut store = Storage {
             all_proposals: todo!(),
             voter_info: todo!(),

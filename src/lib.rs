@@ -1,5 +1,4 @@
 use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::HashMap};
-extern crate time;
 
 pub mod proposal;
 pub mod voter;
@@ -45,7 +44,6 @@ pub struct Storage {
 }
 
 pub mod quadratic_voting {
-    use std::{time::SystemTime, error::Error};
     use crate::{proposal::Proposal, voter::VoteTypes};
     use super::*;
 
@@ -91,8 +89,10 @@ pub mod quadratic_voting {
 
     pub fn cast_vote<T: Trait<ProposalId = u64>>(storage: &mut Storage, who: u64, currency: u64, proposal: T::ProposalId, stance: VoteTypes) -> Result<(), Errors> {
 
-        if storage.all_proposals.contains_key(&proposal){
+        if storage.all_proposals.contains_key(&proposal) && !storage.all_proposals.get(&proposal).unwrap().voters.contains(&who) {
+            //todo! Handle error
             store_incoming_vote(storage, votes_from_fee(currency), stance, proposal, who);
+            //todo! Handle error
             reserve_funds(storage, currency, who);
 
             println!("Vote successfully cast for {:} by {:}", proposal, who); // ~Emit event
@@ -105,15 +105,20 @@ pub mod quadratic_voting {
 
     // Module's private functions - ~non dispatchable
 
-    fn store_incoming_vote(store: &mut Storage, vote_count: u64, stance: VoteTypes, proposal: u64, who: u64) {
+    fn store_incoming_vote(storage: &mut Storage, vote_count: u64, stance: VoteTypes, proposal: u64, who: u64) -> Result<(), Errors>{
         let vote_caster = voter::Voter::<Runtime>::new(
             who,
             vote_count,
             stance,
         );
-        // todo! update all_proposals and voter_info
-        // storage.voter_info.get_mut(&proposal).unwrap().push(vote_caster);
-        // todo: update all proposals table with information about the incoming vote storage.all_proposals.get_mut(&proposal).unwrap()
+        storage.voter_info.get_mut(&proposal).unwrap().push(vote_caster);
+        let cur_proposal = storage.all_proposals.get_mut(&proposal).unwrap();
+        let new_count = match stance {
+            VoteTypes::Nay => cur_proposal.num_nays += vote_count,
+            VoteTypes::Yay => cur_proposal.num_ayes += vote_count,
+            VoteTypes::NoStance => ()
+        };
+        Ok(())
     }
 
     // Returns winning stance
@@ -136,7 +141,7 @@ pub mod quadratic_voting {
 
     fn reserve_funds(storage: &mut Storage,amount: u64, who: u64) -> Result<(), Errors> {
         storage.funds += amount;
-        // todo! should make funds unavailable in who's Account
+        // todo! deduct funds from who's Account
         Ok(())
     }
 
