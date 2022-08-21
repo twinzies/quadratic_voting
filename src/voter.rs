@@ -4,6 +4,7 @@ use crate::Trait;
 pub enum VoteTypes {
     Yay,
     Nay,
+    NoStance,
 }
 
 #[derive(Debug, PartialEq)]

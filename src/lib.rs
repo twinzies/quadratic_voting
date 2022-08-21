@@ -1,4 +1,6 @@
 use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::HashMap};
+extern crate time;
+
 pub mod proposal;
 pub mod voter;
 pub(crate) mod tests;
@@ -42,6 +44,10 @@ pub struct Storage {
 }
 
 pub mod quadratic_voting {
+    use std::time::SystemTime;
+
+    use crate::{proposal::Proposal, voter::VoteTypes};
+
     use super::*;
 
     pub fn create_proposal(storage: &mut Storage, fee: u64, who: u64, proposal_desc:&str) -> Result<(), Errors> {
@@ -54,10 +60,10 @@ pub mod quadratic_voting {
             1234,
         );
 
-        let pId = proposal::generate_pid();
+        let p_Id = proposal::generate_pid();
 
         // Add new proposal to storage
-        storage.all_proposals.insert(pId, proposal);
+        storage.all_proposals.insert(p_Id, proposal);
 
         // take fee
         storage.funds += fee;
@@ -65,7 +71,9 @@ pub mod quadratic_voting {
         Ok(())
     }
 
-    pub fn call_proposal<T: Trait>(storage: &mut Storage, proposal: T::ProposalId) -> Result<(), Errors> {
+    pub fn call_proposal<T: Trait<ProposalId = u64>>(storage: &mut Storage, proposal: T::ProposalId) -> Result<(), Errors> {
+    
+        let proposal = storage.all_proposals.get(&proposal);
         Ok(())
     }
 
@@ -74,8 +82,18 @@ pub mod quadratic_voting {
     }
 
     // Module's private functions - ~non dispatchable
-    fn count_ballots(storage: &Storage) -> u64 {
-        0
+
+    // Returns winning stance
+    fn count_ballots<T: Trait<ProposalId = u64>>(proposal: Proposal<T>) -> VoteTypes {
+        match proposal.num_ayes > proposal.num_nays {
+            true => VoteTypes::Yay,
+            false => if proposal.num_ayes == proposal.num_nays {
+                VoteTypes::NoStance
+            }
+            else {
+                VoteTypes::Nay
+            }
+        }
     }
 
     fn release_funds(storage: &mut Storage, amount: u64) -> Result<(), Errors> {
