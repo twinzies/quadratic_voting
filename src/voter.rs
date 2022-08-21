@@ -1,4 +1,4 @@
-use crate::quadratic_voting::Trait;
+use crate::Trait;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum VoteTypes {

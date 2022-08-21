@@ -1,66 +1,99 @@
-use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display};
+use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::HashMap};
 pub mod proposal;
 pub mod voter;
 pub(crate) mod tests;
+use num::integer::Roots;
 
-pub type ProposalId = u64;
+pub trait Trait {
+    type Weight: Eq + Copy + Clone;
+    type AccountId: Eq;
+    type VoteCount: Eq + AddAssign + SubAssign + Add + Sub + Copy + Clone; // todo! Revisit implementation upon introducing balances and currencies.
+    type ProposalDescription: Display;
+    type Time: PartialOrd + PartialEq + Eq; // primarily needed for comparison to ensure a minimum time for the proposal to be alive is reached.
+    type ProposalId: Eq + Display;
+    type Currency: PartialOrd + PartialEq + Eq;
+}
+
+pub enum Errors {
+    DispatchError,
+    FundsError,
+}
+
+pub struct Runtime;
+
+impl Trait for Runtime {
+    type ProposalId = u64;
+    type ProposalDescription = String;
+    type Weight = u64;
+    type AccountId = u64;
+    type VoteCount = u64;
+    type Time = u64;
+    type Currency = u64;
+}
+
+pub struct Storage {
+    pub all_proposals: HashMap<u64, proposal::Proposal<Runtime>>,
+
+    // Now the generic is a concrete type where the concrete types are explicitly defined l24 - 31.
+
+    pub voter_info: HashMap<u64, Vec<voter::Voter<Runtime>>>,
+
+    pub funds: u64,
+}
 
 pub mod quadratic_voting {
-    use std::collections::HashMap;
-
     use super::*;
-    pub trait Trait {
-        type Weight: Eq + Copy + Clone;
-        type AccountId: Eq;
-        type VoteCount: Eq + AddAssign + SubAssign + Add + Sub + Copy + Clone; // todo! Revisit implementation upon introducing balances and currencies.
-        type ProposalDescription: Display;
-        type Time: PartialOrd + PartialEq + Eq; // primarily needed for comparison to ensure a minimum time for the proposal to be alive is reached.
-        type ProposalId: Eq + Display;
-    }
 
-    pub enum Errors {
-        DispatchError,
-        FundsError,
-    }
-    // Data handling for the module. 
-    // todo: What does it mean to declare these types ?
-    // todo: How to reference generics here ?
-    // todo: Why / how do the generics work here ?
-    pub type Proposals <T> = HashMap<ProposalId, proposal::Proposal<T>>;
-    pub type VoterInfo <T> = HashMap<ProposalId, Vec<voter::Voter<T>>>;
-    pub type QVInternalFunds = u64; // To keep track of funds
+    pub fn create_proposal(storage: &mut Storage, fee: u64, who: u64, proposal_desc:&str) -> Result<(), Errors> {
 
-    pub fn create_proposal() -> Result<(), Errors> {
+        let proposal = proposal::Proposal::<Runtime>::new(
+            0,
+            0,
+            who,
+            String::from(proposal_desc),
+            1234,
+        );
+
+        let pId = proposal::generate_pid();
+
+        // Add new proposal to storage
+        storage.all_proposals.insert(pId, proposal);
+
+        // take fee
+        storage.funds += fee;
+
         Ok(())
     }
 
-    pub fn call_proposal() -> Result<(), Errors> {
+    pub fn call_proposal<T: Trait>(storage: &mut Storage, proposal: T::ProposalId) -> Result<(), Errors> {
         Ok(())
     }
 
-    pub fn cast_vote() -> Result<(), Errors> {
+    pub fn cast_vote<T: Trait>(storage: &mut Storage) -> Result<(), Errors> {
         Ok(())
     }
 
     // Module's private functions - ~non dispatchable
-    fn count_ballots() -> u64 {
+    fn count_ballots(storage: &Storage) -> u64 {
         0
     }
 
-    fn release_funds() -> Result<(), Errors> {
+    fn release_funds(storage: &mut Storage, amount: u64) -> Result<(), Errors> {
+        storage.funds -= amount;
         Ok(())
     }
 
-    fn reserve_funds() -> Result<(), Errors> {
+    fn reserve_funds(storage: &mut Storage,amount: u64, who: u64) -> Result<(), Errors> {
+        storage.funds += amount;
         Ok(())
     }
 
-    fn cleanup() -> Result<(), Errors> {
+    fn proposal_cleanup() -> Result<(), Errors> {
         Ok(())
     }
 
-    fn votes_from_tokens() -> u64 {
-        0
+    fn votes_from_fee(fee: u64) -> u64 {
+        fee.sqrt() // Quadratic voting
     }
 
 }

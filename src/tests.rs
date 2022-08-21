@@ -1,9 +1,10 @@
-
+use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::HashMap};
 #[cfg(test)]
 pub mod tests {
-    use crate::quadratic_voting::Trait;
+    use crate::{Trait, Storage};
     use crate::{proposal, voter};
     use crate::voter::{VoteTypes, Voter};
+    use super::*;
 
     #[derive(PartialEq, Debug)]
     pub struct Test;
@@ -14,7 +15,8 @@ pub mod tests {
         type VoteCount = u64;
         type ProposalDescription =  String;
         type Time = u64; // primarily needed for comparison to ensure a minimum time for the proposal to be alive is reached.
-        type ProposalId = u64; // assume epoch
+        type ProposalId = u64;
+        type Currency = u64;
     }
 
     #[test]
@@ -47,6 +49,7 @@ pub mod tests {
     
     #[test]
     fn test_voter() {
+        // unit tests for voter
 
         let account1: u64 = 41;
         let numVotes:u64 = 5;
@@ -63,6 +66,16 @@ pub mod tests {
         assert_eq!(voter1.stance(), VoteTypes::Nay);
 
         assert_ne!(voter1.weight(), 5);
+    }
+
+    #[test]
+    fn test_quadratic_voting() {
+        // initialize a Storage instance with an empty hashmap.
+        let mut store = Storage {
+            all_proposals: todo!(),
+            voter_info: todo!(),
+            funds: todo!(),
+        };
     }
 
 }

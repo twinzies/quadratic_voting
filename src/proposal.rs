@@ -1,4 +1,4 @@
-use crate::quadratic_voting::Trait;
+use crate::Trait;
 use rand::Rng;
 
 #[derive(Debug, PartialEq)]
@@ -10,7 +10,7 @@ pub struct Proposal <T: Trait> {
     pub creation_time: T::Time,
 }
 
-pub fn generate_pid <T: Trait> () -> u64 {
+pub fn generate_pid () -> u64 {
     let mut rng = rand::thread_rng();
     rng.gen_range(15520..93932)
 } // Simple ID generation.
