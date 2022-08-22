@@ -3,12 +3,12 @@ use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::Hash
 pub mod proposal;
 pub mod voter;
 pub(crate) mod tests;
-use num::integer::Roots;
+use num::{integer::Roots, CheckedAdd};
 
 pub trait Trait {
     type Weight: Eq + Copy + Clone;
     type AccountId: Eq + Display;
-    type VoteCount: Eq + AddAssign + SubAssign + Add + Sub + Copy + Clone
+    type VoteCount: Eq + AddAssign + SubAssign + CheckedAdd + Sub + Copy + Clone
     + PartialOrd + PartialEq; // todo! Revisit implementation upon introducing balances and currencies.
     type ProposalDescription: Display;
     type Time: PartialOrd + PartialEq + Eq; // primarily needed for comparison to ensure a minimum time for the proposal to be alive is reached.
@@ -120,7 +120,7 @@ pub mod quadratic_voting {
     }
 
     // Returns winning stance
-    fn count_ballots<T: Trait<ProposalId = u64>>(proposal: &Proposal<T>) -> (VoteTypes, u64) {
+    fn count_ballots<T: Trait<ProposalId = u64>>(proposal: &Proposal<T>) -> (VoteTypes, T::VoteCount) {
         match proposal.num_ayes > proposal.num_nays {
             true => (VoteTypes::Yay, proposal.num_ayes + proposal.num_nays),
             false => if proposal.num_ayes == proposal.num_nays {
@@ -132,7 +132,7 @@ pub mod quadratic_voting {
         }
     }
 
-    fn release_funds <T: Trait>(storage: &mut Storage<T>, proposal: u64) -> Result<(), Errors> {
+    fn release_funds <T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, proposal: T::ProposalId) -> Result<(), Errors> {
         // todo! Release cumulative of weights Storage.voter_info.get(proposal). for each element in the vec<Voters>
         Ok(())
     }

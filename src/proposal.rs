@@ -31,7 +31,7 @@ impl <T: Trait> Proposal <T> {
         }
     }
 
-    pub fn mod_ayes<T: Trait where Add<Output = T> (self, new_votes: T::VoteCount) -> Self {
+    pub fn mod_ayes(self, new_votes: T::VoteCount) -> Self {
         Proposal {
             num_ayes: self.num_ayes + new_votes,
             ..self
