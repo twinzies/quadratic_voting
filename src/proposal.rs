@@ -1,10 +1,12 @@
+use std::ops::Add;
+
 use crate::Trait;
 use rand::Rng;
 
 #[derive(Debug, PartialEq)]
 pub struct Proposal <T: Trait> {
-    pub num_ayes: u64,
-    pub num_nays: u64,
+    pub num_ayes: T::VoteCount,
+    pub num_nays: T::VoteCount,
     pub creator: T::AccountId,
     pub description: T::ProposalDescription,
     pub creation_time: T::Time,
@@ -18,7 +20,7 @@ pub fn generate_pid () -> u64 {
 
 impl <T: Trait> Proposal <T> {
 
-    pub fn new(num_ayes: u64, num_nays: u64, creator: T::AccountId, description: T::ProposalDescription, creation_time: T::Time) -> Self {
+    pub fn new(num_ayes: T::VoteCount, num_nays: T::VoteCount, creator: T::AccountId, description: T::ProposalDescription, creation_time: T::Time) -> Self {
         Proposal {
             num_ayes: num_ayes,
             num_nays: num_nays,
@@ -29,14 +31,14 @@ impl <T: Trait> Proposal <T> {
         }
     }
 
-    pub fn mod_ayes(self, new_votes: u64) -> Self {
+    pub fn mod_ayes<T: Trait where Add<Output = T> (self, new_votes: T::VoteCount) -> Self {
         Proposal {
             num_ayes: self.num_ayes + new_votes,
             ..self
         }
     }
 
-    pub fn mod_nays(self, new_votes: u64) -> Self {
+    pub fn mod_nays(self, new_votes: T::VoteCount) -> Self {
         Proposal {
             num_ayes: self.num_nays + new_votes,
             ..self

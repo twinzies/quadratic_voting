@@ -1,4 +1,5 @@
 use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::HashMap};
+
 #[cfg(test)]
 pub mod tests {
     use crate::{Trait, Storage};
@@ -19,7 +20,7 @@ pub mod tests {
         type Currency = u64;
     }
 
-    mod T {
+    mod test {
     }
     #[test]
     fn test_proposal() {
@@ -76,11 +77,13 @@ pub mod tests {
     fn test_quadratic_voting() {
         // todo! Add tests for pub mod quadratic voting.
         // instantiate a Storage instance with an empty hashmap.
+        let mut test_proposals: HashMap<u64, proposal::Proposal<Test>>;
+        let mut test_voter_info: HashMap<u64, Vec<voter::Voter<Test>>>;
 
-        let mut store = Storage {
-            all_proposals: todo!(),
-            voter_info: todo!(),
-            funds: todo!(),
+        let mut teststore = Storage {
+            all_proposals: test_proposals,
+            voter_info: test_voter_info,
+            funds: 0,
         };
     }
 
