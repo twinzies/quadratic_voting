@@ -147,7 +147,7 @@ pub mod quadratic_voting {
 
     fn proposal_cleanup(storage: &mut Storage, proposal: u64) -> Result<(), Errors> {
         storage.all_proposals.remove(&proposal);
-        storage.voter_info.remove(&proposal);
+        storage.voter_info.remove(&proposal); // todo! Error handling required
         Ok(())
     }
 
