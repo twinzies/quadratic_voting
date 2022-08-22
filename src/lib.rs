@@ -83,16 +83,16 @@ pub mod quadratic_voting {
         else {
             return Err(Errors::ProposalNotFound);
         }
-        println!("Proposal ID {:} called and closed.", proposal); // Equivalent to pallet events.
+        println!("Proposal ID {:} called and closed.", proposal); // Similar to pallet events.
         Ok(())
     }
 
     pub fn cast_vote<T: Trait<ProposalId = u64>>(storage: &mut Storage, who: u64, currency: u64, proposal: T::ProposalId, stance: VoteTypes) -> Result<(), Errors> {
 
         if storage.all_proposals.contains_key(&proposal) && !storage.all_proposals.get(&proposal).unwrap().voters.contains(&who) {
-            //todo! Handle error
+            //todo! Handle errors
             store_incoming_vote(storage, votes_from_fee(currency), stance, proposal, who);
-            //todo! Handle error
+            //todo! Handle errors
             reserve_funds(storage, currency, who);
 
             println!("Vote successfully cast for {:} by {:}", proposal, who); // ~Emit event
@@ -146,7 +146,8 @@ pub mod quadratic_voting {
     }
 
     fn proposal_cleanup(storage: &mut Storage, proposal: u64) -> Result<(), Errors> {
-        // todo! Delete Proposal id key from both storage elements
+        storage.all_proposals.remove(&proposal);
+        storage.voter_info.remove(&proposal);
         Ok(())
     }
 

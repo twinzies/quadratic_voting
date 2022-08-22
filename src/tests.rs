@@ -75,6 +75,7 @@ pub mod tests {
     #[test]
     fn test_quadratic_voting() {
         // instantiate a Storage instance with an empty hashmap.
+        
         let mut store = Storage {
             all_proposals: todo!(),
             voter_info: todo!(),
