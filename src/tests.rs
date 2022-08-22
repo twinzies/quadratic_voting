@@ -11,13 +11,11 @@ pub mod tests {
     pub struct Test;
 
     impl Trait for Test {
-        type Weight = u64;
+        type Currency = u64;
         type AccountId = u64;
-        type VoteCount = u64;
         type ProposalDescription =  String;
         type Time = u64; // primarily needed for comparison to ensure a minimum time for the proposal to be alive is reached.
         type ProposalId = u64;
-        type Currency = u64;
     }
 
     mod test {
@@ -58,19 +56,19 @@ pub mod tests {
 
         let account1: u64 = 41;
         let numVotes:u64 = 5;
-        let weight = numVotes * numVotes;
+        let Currency = numVotes * numVotes;
         let stance = VoteTypes::Nay;
 
         // Note that the generic is required to take an explicit form here at the time of the binding.
 
         let voter1: Voter<Test> = voter::Voter::new(
             account1,
-            weight,
+            Currency,
             stance);
         
         assert_eq!(voter1.stance(), VoteTypes::Nay);
 
-        assert_ne!(voter1.weight(), 5);
+        assert_ne!(voter1.funds(), 5);
     }
 
     #[test]

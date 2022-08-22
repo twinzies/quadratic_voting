@@ -3,17 +3,14 @@ use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::Hash
 pub mod proposal;
 pub mod voter;
 pub(crate) mod tests;
-use num::{integer::Roots, CheckedAdd};
+use num::{integer::Roots, CheckedAdd, CheckedSub};
 
 pub trait Trait {
-    type Weight: Eq + Copy + Clone;
     type AccountId: Eq + Display;
-    type VoteCount: Eq + AddAssign + SubAssign + CheckedAdd + Sub + Copy + Clone
-    + PartialOrd + PartialEq; // todo! Revisit implementation upon introducing balances and currencies.
     type ProposalDescription: Display;
-    type Time: PartialOrd + PartialEq + Eq; // primarily needed for comparison to ensure a minimum time for the proposal to be alive is reached.
+    type Time: PartialOrd + PartialEq + Eq; // todo! Unimplemented feature.
     type ProposalId: Eq + Display + Hash;
-    type Currency: PartialOrd + PartialEq + Eq;
+    type Currency: PartialOrd + PartialEq + Eq + AddAssign + CheckedAdd + Roots + CheckedSub; // For this scenario Currency is the same units as Currency since the number of votes = squareroot of the deposit which is a Currency.
 }
 
 pub enum Errors {
@@ -29,7 +26,7 @@ pub struct Storage <T: Trait> {
 
     pub voter_info: HashMap<T::ProposalId, Vec<voter::Voter<T>>>,
 
-    pub funds: u64,
+    pub funds: T::Currency,
 }
 
 pub mod quadratic_voting {
@@ -37,10 +34,10 @@ pub mod quadratic_voting {
     use super::*;
 
     // Dispatchable
-    pub fn create_proposal <T: Trait<ProposalDescription = String>>(storage: &mut Storage<T>, fee: T::Currency, who: T::AccountId, proposal_desc:&str) -> Result<(), Errors> {
+    pub fn create_proposal <T: Trait<ProposalDescription = String, ProposalId = u64>>(storage: &mut Storage<T>, fee: T::Currency, who: T::AccountId, proposal_desc:&str) -> Result<(), Errors> {
 
         let proposal = proposal::Proposal::<T>::new(
-            0,
+            0, // No votes can be sent upon initialization.
             0,
             who,
             String::from(proposal_desc),
@@ -68,7 +65,8 @@ pub mod quadratic_voting {
                 VoteTypes::Yay => println!("The Yays have it!"),
                 VoteTypes::NoStance => println!("Tied. No consensus reached.")
             }
-            release_funds(storage, win.1); // win[1] represents ballots received
+            release_funds(storage, proposal);
+
             proposal_cleanup(storage, proposal);
         }
         else {
@@ -79,7 +77,7 @@ pub mod quadratic_voting {
     }
 
     // Dispatchable
-    pub fn cast_vote<T: Trait>(storage: &mut Storage<T>, who: T::AccountId, currency: T::Currency, proposal: T::ProposalId, stance: VoteTypes) -> Result<(), Errors> {
+    pub fn cast_vote<T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, who: T::AccountId, currency: T::Currency, proposal: T::ProposalId, stance: VoteTypes) -> Result<(), Errors> {
 
         if storage.all_proposals.contains_key(&proposal) && !storage.all_proposals.get(&proposal).unwrap().voters.contains(&who) {
             //todo! Handle errors
@@ -102,7 +100,7 @@ pub mod quadratic_voting {
 
     // Module's private functions - ~non dispatchable
 
-    fn store_incoming_vote <T: Trait>(storage: &mut Storage<T>, vote_count: T::VoteCount, stance: VoteTypes, proposal: T::ProposalId, who: T::AccountId) -> Result<(), Errors> {
+    fn store_incoming_vote <T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, vote_count: T::Currency, stance: VoteTypes, proposal: T::ProposalId, who: T::AccountId) -> Result<(), Errors> {
 
         let vote_caster = voter::Voter::<T>::new(
             who,
@@ -120,7 +118,7 @@ pub mod quadratic_voting {
     }
 
     // Returns winning stance
-    fn count_ballots<T: Trait<ProposalId = u64>>(proposal: &Proposal<T>) -> (VoteTypes, T::VoteCount) {
+    fn count_ballots<T: Trait<ProposalId = u64>>(proposal: &Proposal<T>) -> (VoteTypes, T::Currency) {
         match proposal.num_ayes > proposal.num_nays {
             true => (VoteTypes::Yay, proposal.num_ayes + proposal.num_nays),
             false => if proposal.num_ayes == proposal.num_nays {
@@ -133,7 +131,7 @@ pub mod quadratic_voting {
     }
 
     fn release_funds <T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, proposal: T::ProposalId) -> Result<(), Errors> {
-        // todo! Release cumulative of weights Storage.voter_info.get(proposal). for each element in the vec<Voters>
+        // todo! Release cumulative of fundss Storage.voter_info.get(proposal). for each element in the vec<Voters>
         Ok(())
     }
 
@@ -149,7 +147,9 @@ pub mod quadratic_voting {
         Ok(())
     }
 
-    fn votes_from_fee<T: Trait>(fee: T::Currency) -> T::VoteCount {
+    fn votes_from_fee<T: Trait>(fee: T::Currency) -> T::Currency {
+        // Recall that for this non-intuitive scenario Currency is the same units as Currency. 
+        
         fee.sqrt() // Quadratic voting
     }
 
