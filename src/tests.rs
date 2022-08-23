@@ -14,7 +14,6 @@ pub mod tests {
         type Currency = u64;
         type AccountId = u64;
         type ProposalDescription =  String;
-        type Time = u64; // primarily needed for comparison to ensure a minimum time for the proposal to be alive is reached.
         type ProposalId = u64;
     }
 

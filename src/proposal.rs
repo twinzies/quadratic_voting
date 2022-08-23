@@ -1,17 +1,18 @@
 use std::ops::Add;
 
-use crate::Trait;
+use crate::{Trait, quadratic_voting};
+use quadratic_voting::Time as Time;
 use rand::Rng;
 
 #[derive(Debug, PartialEq)]
 pub struct Proposal <T: Trait> {
-    
+
     pub num_ayes: T::Currency,
     pub num_nays: T::Currency,
     pub creator: T::AccountId,
     pub description: T::ProposalDescription,
-    pub creation_time: T::Time,
-    pub voters: Vec<T::AccountId>,
+    pub creation_time: Time,
+    pub voters: Vec<T::AccountId>, // Don't need since I can iterate over all keys.
 }
 
 pub fn generate_pid () -> u64 {
@@ -21,7 +22,7 @@ pub fn generate_pid () -> u64 {
 
 impl <T: Trait> Proposal <T> {
 
-    pub fn new(num_ayes: T::Currency, num_nays: T::Currency, creator: T::AccountId, description: T::ProposalDescription, creation_time: T::Time) -> Self {
+    pub fn new(num_ayes: T::Currency, num_nays: T::Currency, creator: T::AccountId, description: T::ProposalDescription, creation_time: Time) -> Self {
         Proposal {
             num_ayes: num_ayes,
             num_nays: num_nays,
