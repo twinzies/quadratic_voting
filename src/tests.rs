@@ -74,8 +74,8 @@ pub mod tests {
     fn test_quadratic_voting() {
         // todo! Add tests for pub mod quadratic voting.
         // instantiate a Storage instance with an empty hashmap.
-        let mut test_proposals: HashMap<u64, proposal::Proposal<Test>>;
-        let mut test_voter_info: HashMap<u64, Vec<voter::Voter<Test>>>;
+        let mut test_proposals: HashMap<u64, proposal::Proposal<Test>> = HashMap::new();
+        let mut test_voter_info: HashMap<u64, Vec<voter::Voter<Test>>> = HashMap::new();
 
         let mut teststore = Storage {
             all_proposals: test_proposals,

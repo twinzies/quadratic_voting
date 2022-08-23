@@ -6,10 +6,10 @@ pub(crate) mod tests;
 use num::{integer::Roots, CheckedAdd, CheckedSub, Zero, CheckedMul};
 
 pub trait Trait {
-    type AccountId: Eq + Display + Hash;
+    type AccountId: Eq + Display + Hash + Copy;
     type ProposalDescription: Display;
     type ProposalId: Eq + Display + Hash;
-    type Currency: PartialOrd + PartialEq + Eq + AddAssign + CheckedAdd + Roots + CheckedSub + Zero + CheckedMul; // For this scenario Currency is the same units as Currency since the number of votes = squareroot of the deposit which is a Currency.
+    type Currency: PartialOrd + PartialEq + Eq + AddAssign + CheckedAdd + Roots + CheckedSub + Zero + CheckedMul + Copy; // For this scenario Currency is the same units as Currency since the number of votes = squareroot of the deposit which is a Currency.
 }
 
 pub enum Errors {
@@ -96,7 +96,7 @@ pub mod quadratic_voting {
                 proposal, 
                 who);
             //todo! Handle errors
-            reserve_funds(storage, deposit_from_votes(number), who);
+            reserve_funds(storage, deposit_from_votes::<T>(number), who);
 
             println!("Vote successfully cast for {:} by {:}", proposal, who); // ~Emit event
         }
@@ -144,7 +144,7 @@ pub mod quadratic_voting {
         Ok(())
     }
 
-    fn reserve_funds<T:Trait>(storage: &mut Storage<T>,amount: T::Currency, who: T::AccountId) -> Result<(), Errors> {
+    fn reserve_funds<T: Trait>(storage: &mut Storage<T>, amount: T::Currency, who: T::AccountId) -> Result<(), Errors> {
         //storage.funds += amount;
         storage.funds = storage.funds.checked_add(&amount).unwrap(); // must do safe math, returns errors in the case of overflow
         // todo! deduct funds from who's Account
@@ -159,7 +159,10 @@ pub mod quadratic_voting {
 
     fn deposit_from_votes<T: Trait>(votes: T::Currency) -> T::Currency {
         // Recall that for this (counterintuitive) scenario vote counts are in the same units as Currency. 
-        votes.checked_mul(&votes).unwrap() // Quadratic voting
+        match votes.checked_mul(&votes) {
+            None => Zero::zero(),
+            Some(deposit) => deposit,
+        } // Quadratic voting
     }
 
 }
