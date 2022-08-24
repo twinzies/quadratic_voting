@@ -1,8 +1,11 @@
 use std::{ops::{AddAssign, SubAssign, Sub, Add}, fmt::Display, collections::HashMap};
+use crate::Errors;
 
 #[cfg(test)]
 pub mod tests {
-    use crate::{Trait, Storage};
+    use std::io::Error;
+
+    use crate::{Trait, Storage, quadratic_voting};
     use crate::{proposal, voter};
     use crate::voter::{VoteTypes, Voter};
     use super::*;
@@ -72,8 +75,8 @@ pub mod tests {
 
     #[test]
     fn test_quadratic_voting() {
+
         // todo! Add tests for pub mod quadratic voting.
-        // instantiate a Storage instance with an empty hashmap.
         let mut test_proposals: HashMap<u64, proposal::Proposal<Test>> = HashMap::new();
         let mut test_voter_info: HashMap<u64, Vec<voter::Voter<Test>>> = HashMap::new();
 
@@ -82,6 +85,28 @@ pub mod tests {
             voter_info: test_voter_info,
             funds: 0,
         };
+
+        let account1: u64 = 41;
+        let account2: u64 = 42;        
+        
+        
+        let test_proposal = quadratic_voting::create_proposal(&mut teststore, 100, account1, "Testing to be allowed!").unwrap_or_default();
+
+        // The range of valid proposal Ids
+        let range = 15520..93932;
+
+        // Test proposal creation
+        assert_ne!(test_proposal, 0);
+        assert!(range.contains(&test_proposal));
+
+        // Cast vote to junk proposal
+        let test_vote = quadratic_voting::cast_vote(&mut teststore, account2, 5, test_proposal + 5, VoteTypes::Nay);
+
+        // Test cast vote
+        assert!(test_vote.is_err());
+
+        // Test call proposal
+
     }
 
 }

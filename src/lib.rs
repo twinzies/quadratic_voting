@@ -12,6 +12,7 @@ pub trait Trait {
     type Currency: PartialOrd + PartialEq + Eq + AddAssign + CheckedAdd + Roots + CheckedSub + Zero + CheckedMul + Copy; // For this scenario Currency is the same units as Currency since the number of votes = squareroot of the deposit which is a Currency.
 }
 
+#[derive(PartialEq)]
 pub enum Errors {
     DispatchError,
     FundsError,
@@ -39,7 +40,7 @@ pub mod quadratic_voting {
 
     // Dispatchable
     // todo! Add release_funds dispatchable function
-    pub fn create_proposal <T: Trait<ProposalDescription = String, ProposalId = u64>>(storage: &mut Storage<T>, deposit: T::Currency, who: T::AccountId, proposal_desc:&str) -> Result<(), Errors> {
+    pub fn create_proposal <T: Trait<ProposalDescription = String, ProposalId = u64>>(storage: &mut Storage<T>, deposit: T::Currency, who: T::AccountId, proposal_desc:&str) -> Result<u64, Errors> {
 
         let proposal = proposal::Proposal::<T>::new(
             Zero::zero(), // No votes can be sent upon initialization.
@@ -57,30 +58,32 @@ pub mod quadratic_voting {
         // take deposit
         storage.funds += deposit;
 
-        Ok(())
+        Ok(p_id)
     }
 
     // Dispatchable
-    pub fn call_proposal<T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, proposal: T::ProposalId) -> Result<(), Errors> 
+    pub fn call_proposal<T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, proposal: T::ProposalId) -> Result<VoteTypes, Errors> 
     {
         if storage.all_proposals.get(&proposal).is_some() {
             let win = count_ballots(storage.all_proposals.get(&proposal).unwrap());
             match win.0 {
                 VoteTypes::Nay => println!("The Nays have it!"),
                 VoteTypes::Yay => println!("The Yays have it!"),
-                VoteTypes::NoStance => println!("Tied. No consensus reached.")
+                VoteTypes::NoStance => println!("Tied. No consensus reached."),
+                VoteTypes::NoVote => println!("No vote cast"),
             }
             proposal_cleanup(storage, proposal);
+            return Ok(win.0);
         }
         else {
             return Err(Errors::ProposalNotFound);
         }
         println!("Proposal ID {:} called and closed.", proposal); // Similar to pallet events.
-        Ok(())
     }
 
+    // Dispatchable
     // To return deposit on a concluded proposal, an AccountId must invoke the call.
-    pub fn return_deposit<T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, who: T::AccountId, proposal: T::ProposalId){
+    pub fn return_deposit<T: Trait<ProposalId = u64>>(storage: &mut Storage<T>, who: T::AccountId, proposal: T::ProposalId) {
         release_funds(storage, proposal);
     }
 
@@ -121,7 +124,8 @@ pub mod quadratic_voting {
         let new_count = match stance {
             VoteTypes::Nay => cur_proposal.num_nays += vote_count,
             VoteTypes::Yay => cur_proposal.num_ayes += vote_count,
-            VoteTypes::NoStance => ()
+            VoteTypes::NoStance => (),
+            VoteTypes::NoVote => (),
         };
         Ok(())
     }

@@ -5,6 +5,7 @@ pub enum VoteTypes {
     Yay,
     Nay,
     NoStance,
+    NoVote,
 }
 
 #[derive(Debug, PartialEq)]
@@ -12,6 +13,12 @@ pub struct Voter<T: Trait> {
     funds: T::Currency,
     who: T::AccountId, 
     stance: VoteTypes,
+}
+
+impl Default for VoteTypes {
+    fn default() -> Self {
+        Self::NoVote
+    }
 }
 
 impl <T: Trait> Voter <T> {
